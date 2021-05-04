@@ -37,3 +37,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+#Files and Folders to ignore 
+gis_data
+
+
