@@ -105,7 +105,7 @@ source("LOS.R")
 wind_turbines_ll <- st_transform(wind_turbines, 4326)
 mapview(wind_turbines_ll)
 
-viewshed_windfarm <- dplyr::filter(wind_turbines, Turb_ID == "5")
+windfarm_5 <- dplyr::filter(wind_turbines, Turb_ID == "5")
 
 # Change to coarser 500m elevation map for speed
 elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
@@ -113,8 +113,7 @@ elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells 
 # Extract just the geometry for a single mast, and pass to viewshed function.
 # Adding a 5km maximum radius
 # Takes 1 to 2 minutes to run viewshed depending on your PC
-windfarm_geom <- st_geometry(viewshed)[[1]]
-viewshed <- viewshed(dem=elevation500m, windfarm=windfarm_geom,
-                          h1=1.5, h2=50, radius=5000) #Fix this one as broken 
-
+windfarm_geom <- st_geometry(windfarm_5)[[1]]
+cumbria_vw <- viewshed(dem=elevation500m, windfarm=windfarm_geom,
+                          h1=1.5, h2=50, radius=2000) #Fix this one as broken 
 
