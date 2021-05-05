@@ -39,6 +39,6 @@ vignettes/*.pdf
 .Renviron
 
 #Files and Folders to ignore 
-gis_data
+www
 
 
