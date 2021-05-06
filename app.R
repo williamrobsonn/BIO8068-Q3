@@ -1,5 +1,7 @@
 #Shiny app for Q3 of the assessment
 
+#Loading in libraries to analysis and plotting can happen ----
+
 library(shiny)
 library(shinipsum)
 library(leaflet)
@@ -14,38 +16,60 @@ library(dplyr)
 library(rgbif)
 library(BIRDS)
 
+#A lot of data is required to get this working so read in all of the following sections
+
 #Elevation data ----
+
 elevation <- raster("www/elevation.tif")
+
 ll_crs <- CRS("+init=epsg:4326")  # 4326 is the code for latitude longitude
+
 elevation_ll <- projectRaster(elevation, crs=ll_crs)
+
 elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
+
 elevation500m_ll <- aggregate(elevation500m, crs=ll_crs)
 
 #Lakes data ----
 lakes <- st_read("www/cumbria_lakes.shp")
+
 lakes_ll <- st_transform(lakes,crs=ll_crs)
 
 #Settlements data ----
 settlement <- st_read("www/cumbria_settlements.shp")
+
 settlement_ll <- st_transform(settlement,crs=ll_crs)
 
 #Birds data ----
+
 longearedowl_records <- read.csv("NBN/Longearedowl_records.csv")
+
 longearedowl_records <- longearedowl_records[longearedowl_records$identificationVerificationStatus.processed == "Accepted",]
+
 henharriers_records <- read.csv("NBN/Hen_harriers_records.csv")
+
 henharriers_records <- henharriers_records[henharriers_records$identificationVerificationStatus.processed == "Accepted",]
+
 cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
+
 cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
+
 longearedowl_records_per_yr <- longearedowl_records %>% 
     group_by(year.processed) %>% 
     summarise(count_per_year = n())
 
-#Images ----
+cuckoo_records_per_yr <- cuckoo_records %>% 
+    group_by(year.processed) %>% 
+    summarise(count_per_year = n())
 
+#Images ----
 cuckoo_image <- base64enc::dataURI(file="www/cuckoos.PNG", mime="image/png")
+
 hen_harrier_image <- base64enc::dataURI(file="www/hen_harriers.PNG", mime="image/png")
+
 longeared_owl_image <- base64enc::dataURI(file="www/long_eared_owls.PNG", mime="image/png")
-# Define UI for application that displays image of cumbria
+
+# Define UI for application that displays map and images relevant to Cumbria ----
 
 ui <- fluidPage(
     
@@ -55,29 +79,33 @@ ui <- fluidPage(
     # Sidebar  
     sidebarLayout(
         sidebarPanel( p("Before you dive into the interactive map located in the centre panel of this page, it is worth explaining some of the data 
-        included. In the sidebar will be images and brief descriptions of the bird species so that readers can decipher the interactive map"),
+        included. In the sidebar will be images and brief descriptions of the bird species so that readers can decipher the interactive map."),
                       
                       p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
         end of the mating season. They have a distinctive call and are the only bird to be named after their call. They are becoming more rare
-        in Cumbria, due to disturbances during their annual migration from Africa. An image of the bird will be displayed below"), 
+        in Cumbria, due to disturbances during their annual migration from Africa. An image of the bird will be displayed below. If you draw your attention
+                        to the chart in the main section, you will see a figure displaying the number of cuckoos observed over time. According to this 
+                        figure, no cuckoos have been sighted in Cumbria in recent time."), 
                       
                       img(src=cuckoo_image,height="90%", width="90%", align = "centre"),
                       
                       p("Now we will also look at an image of a Hen harrier (Circus cyaneus) (marker colour blue), they are an incredibly rare raptor species
         that has a long history of being persecuted on active moorland (where shooting and farming activities takes place), if
         you view the map you will notice that there is only one displayed. There are numerous recordings of the Hen harrier in Cumbria per year, but most are
-        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier"), width = 4, height = 25,
+        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier. There is no plot in the central panel
+                        of this shiny webApp, this is simply because there is only one confirmed record so will not display on a figure."), width = 4, height = 25,
                       
                       img(src=hen_harrier_image,height="100%", width="100%", align = "centre"), 
                       
                       p("Finally we will look at the Long eared owls (Asio otus) (marker colour yellow). 
                        They prefer to hunt on low land areas and are most active at dusk/dawn.
-                       Below is an image of the Long eared owl"),
+                       Below is an image of the Long eared owl. In the centre panel there is a figure displaying the number of records sighted over time, in 
+                        this case, it is slightly increasing!"),
                       
                       img(src=longeared_owl_image,height="100%", width="100%", align = "centre"),
                       
                       p("Now we have looked at the images of the species we can now display them on the interactive map. Use the side panel to change 
-                       which data can be observed and if you are willing use the buttons below to enter your answer to the question"),
+                       which data can be observed and if you are willing use the buttons below to enter your answer to the question."),
                       
                      
                      actionButton(inputId="my_submitstatus", label="Enter Submission"),
@@ -98,7 +126,8 @@ ui <- fluidPage(
                    
                    plotOutput(outputId = "owls_plot"),
                    
-               
+                   plotOutput(outputId = "cuckoo_plot"),
+                   
                leafletOutput(outputId = "map"))))
 
 
@@ -128,16 +157,23 @@ server <- function(input, output) {
     })
     observeEvent(input$map, {
         click<-input$map
-        text<-paste("Lattitude ", click$lat, "Longtitude ", click$lng)
+        text<-paste("Lattitude ", click$lat, "Longititude ", click$lng)
         print(text)
     })
     
     output$owls_plot <- renderPlot(
         ggplot(longearedowl_records_per_yr, aes(x = year.processed, y=count_per_year)) +
-            geom_line() + xlab("Years") + ylab("Birds observed"))
+            geom_line() + xlab("Years of observation") + ylab("Owls observed") + 
+            theme_classic())
+    
+    output$cuckoo_plot <- renderPlot(
+        ggplot(cuckoo_records_per_yr, aes(x = year.processed, y=count_per_year)) +
+            geom_line() + xlab("Years of observation") + ylab("Cuckoos observed") +
+            theme_classic())
     
 }
 
-# Run the application 
+# Run the shiny----
+
 shinyApp(ui = ui, server = server)
 
