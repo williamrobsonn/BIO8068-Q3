@@ -50,7 +50,10 @@ ui <- fluidPage(
     
     # Sidebar  
     sidebarLayout(
-        sidebarPanel(p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
+        sidebarPanel( p("Before you dive into the interactive map at the bottom of this page, it is worth explaining some of the data
+                        included. Below will be images and brief descriptions of the bird species so that readers know what they are viewing"),
+        
+        p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
         end of the mating season. They have a distinctive call and are the only bird to be named after their call. They are becoming more rare
         in Cumbria, due to disturbances during their annual migration from Africa. An image of the bird will be displayed below"), 
                      
@@ -59,7 +62,7 @@ ui <- fluidPage(
                      p("Now we will also look at an image of a Hen harrier (Circus cyaneus) (marker colour blue), they are an incredibly rare raptor species
         that has a long history of being persecuted on active moorland (where shooting and farming activities takes place), if
         you view the map you will notice that there is only one displayed. There are numerous recordings of the Hen harrier in Cumbria per year, but most are
-        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier"), width = 12, height = 20,
+        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier"), width = 12, height = 25,
                      
                      img(src=hen_harrier_image,height="30%", width="30%", align = "centre"), 
                      
@@ -67,9 +70,22 @@ ui <- fluidPage(
                        They prefer to hunt on low land areas and are most active at dusk/dawn.
                        Below is an image of the Long eared owl"),
                      
-                     img(src=longeared_owl_image,height="30%", width="30%", align = "centre")), 
+                     img(src=longeared_owl_image,height="30%", width="30%", align = "centre"),
+                     
+                     p("Now we have looked at the images of the species we can now display them on the interactive map below. Use the side panel to change 
+                       which data can be observed and if you are willing use the buttons below to enter your answer"),
+                     
+                     
+                     actionButton(inputId="my_submitstatus", label="Enter Submission"),
+                     radioButtons(inputId = "my_checkgroup", 
+                                  h2("Select the species you have seen"), 
+                                  choices = list("Cuckoo" = 1, 
+                                                 "Hen harrier" = 2, 
+                                                 "Long eared owl" = 3,
+                                                "None" = 4),
+                                  selected = 1)), 
         
-        mainPanel( p("This interactive website has been created to display various environmental data 
+        mainPanel( p("As explained above, this interactive website has been created to display various environmental data 
         for the county of Cumbria. It includes data for three", em("rare"), "bird species, these
         species being: Cuckoos, Hen harriers and Long eared owls (pictured and briefly described above). There will also be other environmental 
         data displayed that the user can toggle on/off at their pleasure. Such data includes: elevation,
