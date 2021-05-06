@@ -36,6 +36,9 @@ henharriers_records <- read.csv("NBN/Hen_harriers_records.csv")
 henharriers_records <- henharriers_records[henharriers_records$identificationVerificationStatus.processed == "Accepted",]
 cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
 cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
+longearedowl_records_per_yr <- longearedowl_records %>% 
+    group_by(year.processed) %>% 
+    summarise(count_per_year = n())
 
 #Images ----
 
@@ -43,6 +46,7 @@ cuckoo_image <- base64enc::dataURI(file="www/cuckoos.PNG", mime="image/png")
 hen_harrier_image <- base64enc::dataURI(file="www/hen_harriers.PNG", mime="image/png")
 longeared_owl_image <- base64enc::dataURI(file="www/long_eared_owls.PNG", mime="image/png")
 # Define UI for application that displays image of cumbria
+
 ui <- fluidPage(
     
     # Application title
@@ -50,31 +54,31 @@ ui <- fluidPage(
     
     # Sidebar  
     sidebarLayout(
-        sidebarPanel( p("Before you dive into the interactive map at the bottom of this page, it is worth explaining some of the data
-                        included. Below will be images and brief descriptions of the bird species so that readers know what they are viewing"),
-        
-        p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
+        sidebarPanel( p("Before you dive into the interactive map located in the centre panel of this page, it is worth explaining some of the data 
+        included. In the sidebar will be images and brief descriptions of the bird species so that readers can decipher the interactive map"),
+                      
+                      p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
         end of the mating season. They have a distinctive call and are the only bird to be named after their call. They are becoming more rare
         in Cumbria, due to disturbances during their annual migration from Africa. An image of the bird will be displayed below"), 
-                     
-                     img(src=cuckoo_image,height="30%", width="30%", align = "centre"),
-                     
-                     p("Now we will also look at an image of a Hen harrier (Circus cyaneus) (marker colour blue), they are an incredibly rare raptor species
+                      
+                      img(src=cuckoo_image,height="90%", width="90%", align = "centre"),
+                      
+                      p("Now we will also look at an image of a Hen harrier (Circus cyaneus) (marker colour blue), they are an incredibly rare raptor species
         that has a long history of being persecuted on active moorland (where shooting and farming activities takes place), if
         you view the map you will notice that there is only one displayed. There are numerous recordings of the Hen harrier in Cumbria per year, but most are
-        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier"), width = 12, height = 25,
-                     
-                     img(src=hen_harrier_image,height="30%", width="30%", align = "centre"), 
-                     
-                     p("Finally we will look at the Long eared owls (Asio otus) (marker colour yellow). 
+        not verified. Therefore, for accuracy sake, cannot be used/trusted as true sightings. Below is an image of the Hen harrier"), width = 4, height = 25,
+                      
+                      img(src=hen_harrier_image,height="100%", width="100%", align = "centre"), 
+                      
+                      p("Finally we will look at the Long eared owls (Asio otus) (marker colour yellow). 
                        They prefer to hunt on low land areas and are most active at dusk/dawn.
                        Below is an image of the Long eared owl"),
-                     
-                     img(src=longeared_owl_image,height="30%", width="30%", align = "centre"),
-                     
-                     p("Now we have looked at the images of the species we can now display them on the interactive map below. Use the side panel to change 
-                       which data can be observed and if you are willing use the buttons below to enter your answer"),
-                     
+                      
+                      img(src=longeared_owl_image,height="100%", width="100%", align = "centre"),
+                      
+                      p("Now we have looked at the images of the species we can now display them on the interactive map. Use the side panel to change 
+                       which data can be observed and if you are willing use the buttons below to enter your answer to the question"),
+                      
                      
                      actionButton(inputId="my_submitstatus", label="Enter Submission"),
                      radioButtons(inputId = "my_checkgroup", 
@@ -85,12 +89,15 @@ ui <- fluidPage(
                                                 "None" = 4),
                                   selected = 1)), 
         
-        mainPanel( p("As explained above, this interactive website has been created to display various environmental data 
+        mainPanel( p("As explained in the side bar, this interactive website has been created to display different types of environmental data 
         for the county of Cumbria. It includes data for three", em("rare"), "bird species, these
-        species being: Cuckoos, Hen harriers and Long eared owls (pictured and briefly described above). There will also be other environmental 
+        species being: Cuckoos, Hen harriers and Long eared owls (pictured and briefly described at the side). There will also be other environmental 
         data displayed that the user can toggle on/off at their pleasure. Such data includes: elevation,
         lake data (can you locate the only", strong('lake'), "in the lake district? Hint: Its above Keswick) 
         and settlement data. Please allow a few moments for the data to load in as some delays can be expected."),
+                   
+                   plotOutput(outputId = "owls_plot"),
+                   
                
                leafletOutput(outputId = "map"))))
 
@@ -124,6 +131,10 @@ server <- function(input, output) {
         text<-paste("Lattitude ", click$lat, "Longtitude ", click$lng)
         print(text)
     })
+    
+    output$owls_plot <- renderPlot(
+        ggplot(longearedowl_records_per_yr, aes(x = year.processed, y=count_per_year)) +
+            geom_line() + xlab("Years") + ylab("Birds observed"))
     
 }
 
