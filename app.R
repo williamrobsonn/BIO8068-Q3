@@ -37,7 +37,6 @@ henharriers_records <- henharriers_records[henharriers_records$identificationVer
 cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
 cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
 
-
 # Define UI for application that displays image of cumbria
 ui <- fluidPage(
     
@@ -48,11 +47,14 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(),
         
-        mainPanel(
-            leafletOutput(outputId = "map")
-        )
-    )
-)
+        mainPanel( p("This interative websuit has been created to display various environmental data 
+        for the county of Cumbria. It includes data for three", em("rare"), "bird species, these
+        species being: Cuckoos, Hen harriers and Long eared owls. There will also be other environmental 
+        data displayed that the user can toggle on/off at their pleasure. Such data includes: elevation,
+        lakes data (can you locate the only", strong('lake'), "in the lake district? Hint: Look to the west) 
+        and settlement data. Please allow a few moments for the data to load in as some delays can be expected."),
+                   
+        leafletOutput(outputId = "map"))))
 
 
 server <- function(input, output) {
