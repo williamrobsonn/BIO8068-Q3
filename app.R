@@ -1,58 +1,65 @@
-# Simple demonstration of interactive viewshed calculation
+#Shiny app for Q3 of the assessment
+
 library(shiny)
-library(sf)
-library(raster)
+library(shinipsum)
 library(leaflet)
 library(leafem)
-library(rgdal)
-source("LOS.R")
+library(mapview)
+library(sf)
+options("rgdal_show_exportToProj4_warnings"="none")
+library(raster)
+library(rgbif)
+library(ggplot2)
+library(dplyr)
+library(rgbif)
+library(BIRDS)
 
-#This one works, sort of....
-
+#Elevation data ----
 elevation <- raster("www/elevation.tif")
-elevation500m <- aggregate(elevation, fact=10) # aggregate to 500m grid for speed
-ll_crs <- CRS("+init=epsg:4326")
+ll_crs <- CRS("+init=epsg:4326")  # 4326 is the code for latitude longitude
 elevation_ll <- projectRaster(elevation, crs=ll_crs)
+elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
 
+
+
+# Define UI for application that draws a histogram
 ui <- fluidPage(
-    leafletOutput(outputId = "map")
+    
+    # Application title
+    titlePanel("An environmental overview of Cumbria"),
+    
+    # Sidebar  
+    sidebarLayout(
+        sidebarPanel(),
+        
+        mainPanel(
+            leafletOutput(outputId = "elevation_view")
+        )
+    )
 )
-    
-server <- function(input, output, session){
-    # Display basemap of terrain
-    output$map <- renderLeaflet({
-        leaflet() %>%
-            setView(lng = -3.0886, lat=54.4609, zoom=9) %>%
-            addRasterImage(elevation_ll, colors=terrain.colors(30))
+
+
+server <- function(input, output) {
+    output$elevation_view <- renderLeaflet({
+        leaflet() %>% 
+            addTiles(group = "OSM (default)") %>% 
+            addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
+            #setView(lng = -3.0886, lat=54.4609, zoom=9) %>% 
+            addRasterImage(elevation_ll,col=terrain.colors(30)) %>% 
+            addLayersControl(
+                baseGroups = c("OSM (default)", "Satellite"), 
+                overlayGroups = c("Elevation"),
+                options = layersControlOptions(collapsed = TRUE)
+            )
+    })
+    observeEvent(input$elevation_view, {
+        click<-input$elevation_view
+        text<-paste("Lattitude ", click$lat, "Longtitude ", click$lng)
+        print(text)
     })
     
-    # Detect a click event and grab coordinates for viewshed
-    observeEvent(input$map_click, {
-        coord <- input$map_click
-        lng <- coord$lng 
-        lat <- coord$lat
-
-        # Create a sf points feature in latitude longitude 4326, and project back to OS 2770
-        # The if(length(c(lng,lat))) needed as when Shiny starts there is no data here
-        # so would otherwise give an error. On clicking the map, the lng and lat recorded
-        if(length(c(lng,lat))==2){
-            turbine_pt_ll <- data.frame(lat = lat, lng = lng) %>% 
-                st_as_sf(coords = c("lng", "lat")) %>% 
-                st_set_crs(4326)
-            turbine_pt_os <- st_transform(turbine_pt_ll, crs=27700)
-            turbine_pt_os <- st_geometry(turbine_pt_os)[[1]] # Only want geometry
-
-            # Calculate 5km viewshed and reproject back to lat-lon
-            viewshed_5km_os <- viewshed(dem=elevation500m, windfarm=turbine_pt_os,
-                                        h1=1.5, h2=50, radius=5000)
-            viewshed_5km_ll <- projectRaster(viewshed_5km_os, crs=ll_crs)
-
-            # Add to existing map            
-            leafletProxy("map") %>% 
-                addRasterImage(viewshed_5km_ll, color="red")
-        }
-    })
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
