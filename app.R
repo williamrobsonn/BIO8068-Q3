@@ -16,7 +16,8 @@ library(dplyr)
 library(rgbif)
 library(BIRDS)
 
-#A lot of data is required to get this working so read in all of the following sections
+#A lot of data is required to get this working so read in all of the following sections from
+#the non-interactive R script
 
 #Elevation data ----
 
@@ -81,11 +82,11 @@ ui <- fluidPage(
         sidebarPanel( p("Before you dive into the interactive map located in the centre panel of this page, it is worth explaining some of the data 
         included. In the sidebar will be images and brief descriptions of the bird species so that readers can decipher the interactive map."),
                       
-                      p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria. Heard from early Spring, until the
-        end of the mating season. They have a distinctive call and are the only bird to be named after their call. They are becoming more rare
+                      p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria, usually heard from early Spring.
+        They have a distinctive call and are the only bird to be named after their call. They are becoming rarer
         in Cumbria, due to disturbances during their annual migration from Africa. An image of the bird will be displayed below. If you draw your attention
-                        to the chart in the main section, you will see a figure displaying the number of cuckoos observed over time. According to this 
-                        figure, no cuckoos have been sighted in Cumbria in recent time."), 
+                        to the chart in the main section (second one down), you will see a figure displaying the number of cuckoos observed over time. According to this 
+                        figure, no cuckoos have been sighted in Cumbria in recent years."), 
                       
                       img(src=cuckoo_image,height="90%", width="90%", align = "centre"),
                       
@@ -99,7 +100,7 @@ ui <- fluidPage(
                       
                       p("Finally we will look at the Long eared owls (Asio otus) (marker colour yellow). 
                        They prefer to hunt on low land areas and are most active at dusk/dawn.
-                       Below is an image of the Long eared owl. In the centre panel there is a figure displaying the number of records sighted over time, in 
+                       Below is an image of the Long eared owl. In the centre panel there is a figure displaying the number of records sighted over time (first plot displayed), in 
                         this case, it is slightly increasing!"),
                       
                       img(src=longeared_owl_image,height="100%", width="100%", align = "centre"),
@@ -107,15 +108,15 @@ ui <- fluidPage(
                       p("Now we have looked at the images of the species we can now display them on the interactive map. Use the side panel to change 
                        which data can be observed and if you are willing use the buttons below to enter your answer to the question."),
                       
-                     
-                     actionButton(inputId="my_submitstatus", label="Enter Submission"),
-                     radioButtons(inputId = "my_checkgroup", 
-                                  h2("Select the species you have seen"), 
-                                  choices = list("Cuckoo" = 1, 
-                                                 "Hen harrier" = 2, 
-                                                 "Long eared owl" = 3,
-                                                "None" = 4),
-                                  selected = 1)), 
+                      
+                      actionButton(inputId="my_submitstatus", label="Enter Submission"),
+                      radioButtons(inputId = "my_checkgroup", 
+                                   h2("Select the species you have seen"), 
+                                   choices = list("Cuckoo" = 1, 
+                                                  "Hen harrier" = 2, 
+                                                  "Long eared owl" = 3,
+                                                  "None" = 4),
+                                   selected = 1)), 
         
         mainPanel( p("As explained in the side bar, this interactive website has been created to display different types of environmental data 
         for the county of Cumbria. It includes data for three", em("rare"), "bird species, these
@@ -128,7 +129,7 @@ ui <- fluidPage(
                    
                    plotOutput(outputId = "cuckoo_plot"),
                    
-               leafletOutput(outputId = "map"))))
+                   leafletOutput(outputId = "map"))))
 
 
 server <- function(input, output) {
