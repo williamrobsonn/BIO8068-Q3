@@ -41,6 +41,18 @@ settlement <- st_read("www/cumbria_settlements.shp")
 
 settlement_ll <- st_transform(settlement,crs=ll_crs)
 
+#River data ----
+
+river <- st_read("www/cumbria_rivers.shp")
+
+rivers_ll <- st_transform(lakes,crs=ll_crs)
+
+#Roads data ----
+
+roads <- st_read("www/cumbria_roads.shp")
+
+roads_ll <- st_transform(lakes,crs=ll_crs)
+
 #Birds data ----
 
 longearedowl_records <- read.csv("NBN/Longearedowl_records.csv")
@@ -80,7 +92,7 @@ ui <- fluidPage(
     # Sidebar  
     sidebarLayout(
         sidebarPanel( p("Before you dive into the interactive map located in the centre panel of this page, it is worth explaining some of the data 
-        included. In the sidebar will be images and brief descriptions of the bird species so that readers can decipher the interactive map."),
+        included. In this sidebar there are images and brief descriptions of the bird species so that  can be seen in the interactive map"),
                       
                       p("The Common Cuckoo (Cuculus canorus) (marker colour red) is a visitor to Cumbria, usually heard from early Spring.
         They have a distinctive call and are the only bird to be named after their call. They are becoming rarer
@@ -123,7 +135,7 @@ ui <- fluidPage(
         species being: Cuckoos, Hen harriers and Long eared owls (pictured and briefly described at the side). There will also be other environmental 
         data displayed that the user can toggle on/off at their pleasure. Such data includes: elevation,
         lake data (can you locate the only", strong('lake'), "in the lake district? Hint: Its above Keswick) 
-        and settlement data. Please allow a few moments for the data to load in as some delays can be expected."),
+        settlement data, road data and river data. Please allow a few moments for the data to load in as some delays can be expected."),
                    
                    plotOutput(outputId = "owls_plot"),
                    
@@ -148,10 +160,12 @@ server <- function(input, output) {
                              labelOptions = labelOptions(interactive = "TRUE"),
                              radius = 2, fillOpacity = 0.5, opacity = 0.5, col="yellow", popup = longearedowl_records$scientificNameprocessed) %>%
             addFeatures(lakes_ll, group = "Lakes") %>%
+            addFeatures(roads_ll, group = "Roads") %>% 
+            addFeatures(rivers_ll, group = "Rivers") %>% 
             addFeatures(settlement_ll, group = "Settlements", label = settlement_ll$NAME, labelOptions = labelOptions(interactive = "TRUE")) %>%
             addLayersControl(
                 baseGroups = c("OSM (default)", "Satellite"), 
-                overlayGroups = c("Elevation", "Lakes", "Settlements", "Cuckoo", "Hen harrier", "Long eared owl"),
+                overlayGroups = c("Elevation", "Lakes", "Settlements", "Roads", "Rivers", "Cuckoo", "Hen harrier", "Long eared owl"),
                 options = layersControlOptions(collapsed = FALSE)
             ) 
         

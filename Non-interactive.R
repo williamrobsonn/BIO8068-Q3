@@ -91,7 +91,26 @@ lake_view <- leaflet() %>%
     options = layersControlOptions(collapsed = TRUE)
   )
 
-lake_view #This works now
+lake_view
+
+#Roads data
+
+roads <- st_read("www/cumbria_roads.shp")
+
+roads_ll <- st_transform(roads,crs=ll_crs)
+
+addFeatures(roads_ll, group = "Roads") %>%
+
+#rivers data 
+
+river <- st_read("www/cumbria_rivers.shp")
+
+rivers_ll <- st_transform(river,crs=ll_crs)
+
+addFeatures(rivers_ll, group = "Rivers") %>%
+
+
+
 
 #Collecting data from NBN data ----
 
