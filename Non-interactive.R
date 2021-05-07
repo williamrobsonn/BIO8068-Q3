@@ -1,6 +1,6 @@
 #Q3 Non interactive script
 
-#Loading in packages and necessary scripts for GIS analysis ----
+#Loading in packages and necessary scripts for Map analysis ----
 
 library(leaflet)
 library(leafem)
@@ -14,38 +14,121 @@ library(dplyr)
 library(rgbif)
 library(BIRDS)
 
-#NBN data ----
+#Elevation data for analysis ----
 
-#Cuckoos first
+# Import raster elevation data Ordnance Survey projection
+elevation <- raster("www/elevation.tif")
+
+#Ensuring the elevation maps colours are plotted in correct order
+plot(elevation, col=terrain.colors(30))
+
+#Creating an interactive map and also changing the projection so it can be viewed in leaflet ----
+
+#The elevation500m is also changing the quality so it can be loaded in faster when being displayed 
+#via leaflet and mapview
+
+ll_crs <- CRS("+init=epsg:4326")  # 4326 is the code for latitude longitude
+
+elevation_ll <- projectRaster(elevation, crs=ll_crs)
+
+elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
+
+elevation500m_ll <- projectRaster(elevation500m, crs=ll_crs)
+
+mapview(elevation500m_ll)
+
+#Now we will display the elevation data in leaflet 
+
+elevation_view <- leaflet() %>% 
+  addTiles(group = "OSM (default)") %>% 
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>%
+  addRasterImage(elevation_ll,col=terrain.colors(30), group = "Elevation") %>% 
+  addLayersControl(
+    baseGroups = c("OSM (default)", "Satellite"), 
+    overlayGroups = c("Elevation"),
+    options = layersControlOptions(collapsed = TRUE)
+  )
+
+elevation_view #This displays it 
+
+#Displaying vector data and transforming so it can be displayed in leaflet ----
+
+#This is all done in a similar fashion to the elevation data, using a conversion to long lat 
+#aka the crs=ll_crs function.
+
+#Settlement data 
+
+settlement <- st_read("www/cumbria_settlements.shp")
+
+settlement_ll <- st_transform(settlement,crs=ll_crs)
+
+settlement_view <- leaflet() %>% 
+  addTiles(group = "OSM (default)") %>% 
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
+  addFeatures(settlemnt_ll, group = "Settlements") %>% 
+  addLayersControl(
+    baseGroups = c("OSM (default)", "Satellite"), 
+    overlayGroups = c("Settlements"),
+    options = layersControlOptions(collapsed = TRUE)
+  )
+
+settlement_view
+
+#Lake data
+
+lakes <- st_read("www/cumbria_lakes.shp")
+
+lakes_ll <- st_transform(lakes,crs=ll_crs)
+
+lake_view <- leaflet() %>% 
+  addTiles(group = "OSM (default)") %>% 
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
+  setView(lng = -3.0886, lat=54.4609, zoom=9) %>% 
+  addFeatures(lakes_ll, group = "Lakes") %>% 
+  addLayersControl(
+    baseGroups = c("OSM (default)", "Satellite"), 
+    overlayGroups = c("Lakes"),
+    options = layersControlOptions(collapsed = TRUE)
+  )
+
+lake_view #This works now
+
+#Collecting data from NBN data ----
+
+#Data is from a manual download as R code for data failed to complete
+#All of the data is for the Cumbrian county
+
+#Cuckoo records data
 cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
 
-#Plotting to observe trends
+#Now getting rid of the data that is not in Accepted filter
+cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
+
+#Plotting to observe trends over time
+
 ggplot(cuckoo_records, aes(x=year.processed)) +
   geom_histogram()
 
+#Now viewing trends over time
 cuckoo_records_per_yr <- cuckoo_records %>% 
   group_by(year.processed) %>% 
   summarise(count_per_year = n())
 
+#Using ggplot as more interactive
 ggplot(cuckoo_records_per_yr, aes(x = year.processed, y=count_per_year)) +
   geom_line() + xlab("Years") + ylab("Birds observed")
 
+#Now to carry out the same code for the remaining two species 
+
 #Hen harriers
 henharriers_records <- read.csv("NBN/Hen_harriers_records.csv")
+henharriers_records <- henharriers_records[henharriers_records$identificationVerificationStatus.processed == "Accepted",]
 
-#observing trends
-ggplot(henharriers_records, aes(x=year.processed)) +
-  geom_histogram()
-
-henharriers_records_per_yr <- henharriers_records %>% 
-  group_by(year.processed) %>% 
-  summarise(count_per_year = n())
-
-ggplot(henharriers_records_per_yr, aes(x = year.processed, y=count_per_year)) +
-  geom_line() + xlab("Years") + ylab("Birds observed")
+#There is no need to look at Hen harrier data over time as there is only one record due to the filtering of data
 
 #Long eared owl data
 longearedowl_records <- read.csv("NBN/Longearedowl_records.csv")
+longearedowl_records <- longearedowl_records[longearedowl_records$identificationVerificationStatus.processed == "Accepted",]
 
 #observing trends
 ggplot(longearedowl_records, aes(x=year.processed)) +
@@ -58,7 +141,7 @@ longearedowl_records_per_yr <- longearedowl_records %>%
 ggplot(longearedowl_records_per_yr, aes(x = year.processed, y=count_per_year)) +
   geom_line() + xlab("Years") + ylab("Birds observed")
 
-#Now joining all datapoints together
+#Now joining all bird datapoints together in leaflet view 
 bird_plot <- leaflet() %>%
   addTiles(group = "OSM (default)") %>% 
   addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
@@ -74,108 +157,33 @@ bird_plot <- leaflet() %>%
                       addLayersControl(
                      baseGroups = c("OSM (default)", "Satellite"), 
                      overlayGroups = c("Cuckoo", "Hen Harrier", "Long eared owl"),
-                     options = layersControlOptions(collapsed = TRUE)) %>% 
-                     addLegend("bottomright", colors = "reds", 
-                    opacity=1, labels="Cuckoo", "Hen harrier", "Long eared owl")
-  
-
+                     options = layersControlOptions(collapsed = TRUE))  
+        
 bird_plot
 
-#Testing to see if leaflet will read in vectors ----
 
-settlement <- st_read("www/cumbria_settlements.shp")
-settlemnt_ll <- st_transform(settlement,crs=ll_crs)
+#Plotting all inputs together on one leaflet map ----
 
-settlement_view <- leaflet() %>% 
+#Now I have all of my data in the correct format I can display them in one large leaflet map and create toggles 
+#so it doesn't appear too crowded for the interactive version.
+
+leaflet() %>% 
   addTiles(group = "OSM (default)") %>% 
   addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
-  addFeatures(settlemnt_ll) %>% 
+  addRasterImage(elevation500m_ll,col=terrain.colors(30), group = "Elevation") %>% 
+  addCircleMarkers(cuckoo_records$decimalLongitude.processed, cuckoo_records$decimalLatitude.processed, label = cuckoo_records$scientificName.processed, group = "Cuckoo", 
+                   labelOptions = labelOptions(interactive = "TRUE"),
+                   radius = 2, fillOpacity = 0.5, opacity = 0.5, col="red", popup = cuckoo_records$scientificNameprocessed) %>%
+  addCircleMarkers(henharriers_records$decimalLongitude.processed, henharriers_records$decimalLatitude.processed, label = henharriers_records$scientificName.processed, group = "Hen harrier", 
+                   labelOptions = labelOptions(interactive = "TRUE"),
+                   radius = 2, fillOpacity = 0.5, opacity = 0.5, col="blue", popup = henharriers_records$scientificName.processed) %>%
+  addCircleMarkers(longearedowl_records$decimalLongitude.processed, longearedowl_records$decimalLatitude.processed, label = longearedowl_records$scientificName.processed, group = "Long eared owl",
+                   labelOptions = labelOptions(interactive = "TRUE"),
+                   radius = 2, fillOpacity = 0.5, opacity = 0.5, col="yellow", popup = longearedowl_records$scientificNameprocessed) %>%
+  addFeatures(lakes_ll, group = "Lakes") %>% 
+  addFeatures(settlement_ll, group = "Settlements", label = settlement_ll$NAME, labelOptions = labelOptions(interactive = "TRUE")) %>% 
   addLayersControl(
     baseGroups = c("OSM (default)", "Satellite"), 
-    overlayGroups = c("Settlements"),
+    overlayGroups = c("Elevation", "Lakes", "Settlements", "Cuckoo", "Hen harrier", "Long eared owl"),
     options = layersControlOptions(collapsed = TRUE)
   )
-
-settlement_view
-
-lakes <- st_read("www/cumbria_lakes.shp")
-lakes_ll <- st_transform(lakes,crs=ll_crs)
-
-lake_view <- leaflet() %>% 
-  addTiles(group = "OSM (default)") %>% 
-  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
-  setView(lng = -3.0886, lat=54.4609, zoom=9) %>% 
-  addFeatures(lakes_ll) %>% 
-  addLayersControl(
-    baseGroups = c("OSM (default)", "Satellite"), 
-    overlayGroups = c("Lakes"),
-    options = layersControlOptions(collapsed = TRUE)
-  )
-
-lake_view #This works now
-
-elevation_view <- leaflet() %>% 
-addTiles(group = "OSM (default)") %>% 
-  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
-  #setView(lng = -3.0886, lat=54.4609, zoom=9) %>% 
-  addRasterImage(elevation_ll,col=terrain.colors(30)) %>% 
-  addLayersControl(
-    baseGroups = c("OSM (default)", "Satellite"), 
-    overlayGroups = c("Elevation"),
-    options = layersControlOptions(collapsed = TRUE)
-  )
-
-elevation_view #This also works 
-
-
-
-#Plotting the raster elevation maps ----
-
-# Import raster elevation data Ordnance Survey projection
-elevation <- raster("www/elevation.tif")
-
-plot(elevation) 
-
-#These colours are reversed so we need to flip them back. 
-# use the terrain.colors option to set low elevation to green, high to brown, 
-# with 30 colour categories
-
-plot(elevation, col=terrain.colors(30)) #Looks clearer now
-
-#Creating an interactive map and also changing the projection so it can be viewed ----
-
-ll_crs <- CRS("+init=epsg:4326")  # 4326 is the code for latitude longitude
-elevation_ll <- projectRaster(elevation, crs=ll_crs)
-
-mapview(elevation_ll)
-
-#Add DTM data to site data (wind turbines) ----
-
-wind_turbines <- st_read("www/windfarm.shp")
-
-print(wind_turbines) 
-#This just looks at the layout from BIO8069 that I set for
-#the wind turbines
-
-plot(elevation, col=terrain.colors(30))
-plot(wind_turbines, add=TRUE) #Viewing on map, appears as circle around South Western lakes
-
-mapview(st_transform(wind_turbines, 4326)) #Viewing on interactive map
-
-wind_turbines #viewing the changes
-
-#Create a viewshed (scrapped) ----
-
-source("LOS.R")
-
-
-# Convert to latitude-longitude; EPSG code 4326
-wind_turbines_ll <- st_transform(wind_turbines, 4326)
-mapview(wind_turbines_ll)
-
-windfarm_5 <- dplyr::filter(wind_turbines, Turb_ID == "5")
-
-# Change to coarser 500m elevation map for speed
-elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
-
-
