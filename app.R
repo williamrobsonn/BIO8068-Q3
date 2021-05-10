@@ -29,7 +29,7 @@ elevation_ll <- projectRaster(elevation, crs=ll_crs)
 
 elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
 
-elevation500m_ll <- aggregate(elevation500m, crs=ll_crs)
+elevation500m_ll <- projectRaster(elevation500m, crs=ll_crs)
 
 #Lakes data ----
 lakes <- st_read("www/cumbria_lakes.shp")
