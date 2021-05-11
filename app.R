@@ -55,15 +55,15 @@ roads_ll <- st_transform(lakes,crs=ll_crs)
 
 #Birds data ----
 
-longearedowl_records <- read.csv("NBN/Longearedowl_records.csv")
+longearedowl_records <- read.csv("www/Longearedowl_records.csv")
 
 longearedowl_records <- longearedowl_records[longearedowl_records$identificationVerificationStatus.processed == "Accepted",]
 
-henharriers_records <- read.csv("NBN/Hen_harriers_records.csv")
+henharriers_records <- read.csv("www/Hen_harriers_records.csv")
 
 henharriers_records <- henharriers_records[henharriers_records$identificationVerificationStatus.processed == "Accepted",]
 
-cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
+cuckoo_records <- read.csv("www/Cuckoo_records.csv")
 
 cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
 
