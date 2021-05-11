@@ -3,55 +3,33 @@
 #Loading in libraries to analysis and plotting can happen ----
 
 library(shiny)
-library(shinipsum)
+
 library(leaflet)
+
 library(leafem)
-library(mapview)
-library(sf)
-options("rgdal_show_exportToProj4_warnings"="none")
-library(raster)
-library(rgbif)
+
 library(ggplot2)
+
 library(dplyr)
-library(rgbif)
-library(BIRDS)
+
+options("rgdal_show_exportToProj4_warnings"="none")
 
 #A lot of data is required to get this working so read in all of the following sections from
 #the non-interactive R script
 
-#Elevation data ----
+#Reading in data via RDS ----
 
-elevation <- raster("www/elevation.tif")
 
-ll_crs <- CRS("+init=epsg:4326")  # 4326 is the code for latitude longitude
 
-elevation_ll <- projectRaster(elevation, crs=ll_crs)
+elevation500m_ll <- readRDS("www/elevation500m_ll.RDS")
 
-elevation500m <- aggregate(elevation, fact=10) # fact=10 is the number of cells aggregated together
+lakes_ll         <- readRDS("www/lakes_ll.RDS")
 
-elevation500m_ll <- projectRaster(elevation500m, crs=ll_crs)
+roads_ll         <- readRDS("www/roads_ll.RDS")
 
-#Lakes data ----
-lakes <- st_read("www/cumbria_lakes.shp")
+rivers_ll        <- readRDS("www/rivers_ll.RDS")
 
-lakes_ll <- st_transform(lakes,crs=ll_crs)
-
-#Settlements data ----
-settlement <- st_read("www/cumbria_settlements.shp")
-
-settlement_ll <- st_transform(settlement,crs=ll_crs)
-
-#River data ----
-
-river <- st_read("www/cumbria_rivers.shp")
-
-rivers_ll <- st_transform(lakes,crs=ll_crs)
-
-#Roads data ----
-
-roads <- st_read("www/cumbria_roads.shp")
-
-roads_ll <- st_transform(lakes,crs=ll_crs)
+settlement_ll    <- readRDS("www/settlement_ll.RDS")
 
 #Birds data ----
 
@@ -76,11 +54,11 @@ cuckoo_records_per_yr <- cuckoo_records %>%
     summarise(count_per_year = n())
 
 #Images ----
-cuckoo_image <- base64enc::dataURI(file="www/cuckoos.PNG", mime="image/png")
+cuckoo_image <- base64enc::dataURI(file="www/cuckoos.png", mime="image/png")
 
-hen_harrier_image <- base64enc::dataURI(file="www/hen_harriers.PNG", mime="image/png")
+hen_harrier_image <- base64enc::dataURI(file="www/hen_harriers.png", mime="image/png")
 
-longeared_owl_image <- base64enc::dataURI(file="www/long_eared_owls.PNG", mime="image/png")
+longeared_owl_image <- base64enc::dataURI(file="www/long_eared_owls.png", mime="image/png")
 
 # Define UI for application that displays map and images relevant to Cumbria ----
 

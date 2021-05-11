@@ -8,11 +8,8 @@ library(mapview)
 library(sf)
 options("rgdal_show_exportToProj4_warnings"="none")
 library(raster)
-library(rgbif)
 library(ggplot2)
 library(dplyr)
-library(rgbif)
-library(BIRDS)
 
 #Elevation data for analysis ----
 
@@ -37,12 +34,17 @@ elevation500m_ll <- projectRaster(elevation500m, crs=ll_crs)
 
 mapview(elevation500m_ll)
 
+#Saving as RDS file for import later on
+
+saveRDS(elevation500m_ll, file = "elevation500m_ll.RDS")
+
+
 #Now we will display the elevation data in leaflet 
 
 elevation_view <- leaflet() %>% 
   addTiles(group = "OSM (default)") %>% 
   addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>%
-  addRasterImage(elevation_ll,col=terrain.colors(30), group = "Elevation") %>% 
+  addRasterImage(elevation500m_ll,col=terrain.colors(30), group = "Elevation") %>% 
   addLayersControl(
     baseGroups = c("OSM (default)", "Satellite"), 
     overlayGroups = c("Elevation"),
@@ -74,6 +76,10 @@ settlement_view <- leaflet() %>%
 
 settlement_view
 
+#Saving as RDS
+
+saveRDS(settlement_ll, file = "settlement_ll.RDS")
+
 #Lake data
 
 lakes <- st_read("www/cumbria_lakes.shp")
@@ -93,13 +99,21 @@ lake_view <- leaflet() %>%
 
 lake_view
 
+#Saving as RDS
+
+saveRDS(lakes_ll, file = "lakes_ll.RDS")
+
 #Roads data
 
 roads <- st_read("www/cumbria_roads.shp")
 
 roads_ll <- st_transform(roads,crs=ll_crs)
 
-addFeatures(roads_ll, group = "Roads") %>%
+addFeatures(roads_ll, group = "Roads")
+
+#Saving as RDS
+
+saveRDS(roads_ll, file = "roads_ll.RDS")
 
 #rivers data 
 
@@ -107,10 +121,11 @@ river <- st_read("www/cumbria_rivers.shp")
 
 rivers_ll <- st_transform(river,crs=ll_crs)
 
-addFeatures(rivers_ll, group = "Rivers") %>%
+addFeatures(rivers_ll, group = "Rivers")
 
+#Saving as RDS
 
-
+saveRDS(rivers_ll, file = "rivers_ll.RDS")
 
 #Collecting data from NBN data ----
 
@@ -189,7 +204,7 @@ bird_plot
 leaflet() %>% 
   addTiles(group = "OSM (default)") %>% 
   addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>% 
-  addRasterImage(elevation500m_ll,col=terrain.colors(30), group = "Elevation") %>% 
+  addFeatures(elevation500m_ll, group = "Elevation") %>% 
   addCircleMarkers(cuckoo_records$decimalLongitude.processed, cuckoo_records$decimalLatitude.processed, label = cuckoo_records$scientificName.processed, group = "Cuckoo", 
                    labelOptions = labelOptions(interactive = "TRUE"),
                    radius = 2, fillOpacity = 0.5, opacity = 0.5, col="red", popup = cuckoo_records$scientificNameprocessed) %>%
