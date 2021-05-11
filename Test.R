@@ -1,5 +1,5 @@
 #Non-interactive 2 ----
-
+.
 #Loading the packages for use ----
 library(leaflet)
 library(leafem)
