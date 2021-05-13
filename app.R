@@ -19,8 +19,6 @@ options("rgdal_show_exportToProj4_warnings"="none")
 
 #Reading in data via RDS ----
 
-
-
 elevation500m_ll <- readRDS("www/elevation500m_ll.RDS")
 
 lakes_ll         <- readRDS("www/lakes_ll.RDS")

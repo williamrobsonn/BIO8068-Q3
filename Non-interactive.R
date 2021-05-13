@@ -133,7 +133,7 @@ saveRDS(rivers_ll, file = "rivers_ll.RDS")
 #All of the data is for the Cumbrian county
 
 #Cuckoo records data
-cuckoo_records <- read.csv("NBN/Cuckoo_records.csv")
+cuckoo_records <- read.csv("www/Cuckoo_records.csv")
 
 #Now getting rid of the data that is not in Accepted filter
 cuckoo_records <- cuckoo_records[cuckoo_records$identificationVerificationStatus.processed == "Accepted",]
@@ -155,13 +155,13 @@ ggplot(cuckoo_records_per_yr, aes(x = year.processed, y=count_per_year)) +
 #Now to carry out the same code for the remaining two species 
 
 #Hen harriers
-henharriers_records <- read.csv("NBN/Hen_harriers_records.csv")
+henharriers_records <- read.csv("www/Hen_harriers_records.csv")
 henharriers_records <- henharriers_records[henharriers_records$identificationVerificationStatus.processed == "Accepted",]
 
 #There is no need to look at Hen harrier data over time as there is only one record due to the filtering of data
 
 #Long eared owl data
-longearedowl_records <- read.csv("NBN/Longearedowl_records.csv")
+longearedowl_records <- read.csv("www/Longearedowl_records.csv")
 longearedowl_records <- longearedowl_records[longearedowl_records$identificationVerificationStatus.processed == "Accepted",]
 
 #observing trends
